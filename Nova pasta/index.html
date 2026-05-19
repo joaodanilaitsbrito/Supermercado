@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuperMais PDV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- TELA DE LOGIN -->
+  <div id="tela-login">
+    <div class="login-glow"></div>
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="marca">SUPER<span>MAIS</span></div>
+        <div class="sub">Sistema PDV &mdash; Frente de Caixa</div>
+      </div>
+      <div class="login-campo">
+        <label>Matrícula</label>
+        <input type="text" id="login-matricula" placeholder="Ex: OP001" autocomplete="off" maxlength="10">
+      </div>
+      <div class="login-campo">
+        <label>Senha</label>
+        <input type="password" id="login-senha" placeholder="••••" maxlength="20">
+      </div>
+      <button class="btn-login" id="btn-entrar">ENTRAR NO CAIXA</button>
+      <div class="login-erro" id="login-erro">Matrícula ou senha inválidos.</div>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-logo">SUPER<span>MAIS</span> <span class="topbar-sub">PDV</span></div>
+      <div class="topbar-centro">
+        <span class="relogio" id="relogio">00:00:00</span>
+        <span class="badge-status online">● ONLINE</span>
+      </div>
+      <div class="topbar-operador">
+        <div class="avatar" id="avatar-op">--</div>
+        <span id="nome-op">Operador</span>
+        <button class="btn-sair" id="btn-sair">Sair</button>
+      </div>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <div class="layout">
+
+      <!-- COLUNA ESQUERDA -->
+      <div class="col-esq">
+
+        <!-- Display digital -->
+        <div class="display">
+          <div class="display-prod" id="disp-prod">Aguardando produto...</div>
+          <div class="display-total" id="disp-total">R$ 0,00</div>
+          <div class="display-info">
+            <span id="disp-itens">0 itens</span>
+            <span id="disp-data"></span>
+          </div>
+        </div>
+
+        <!-- Busca -->
+        <div class="busca-card">
+          <div class="busca-row">
+            <input type="text" class="input-codigo" id="input-codigo"
+              placeholder="Código de barras..." autocomplete="off" autofocus>
+            <button class="btn-icon" id="btn-add-codigo">＋</button>
+          </div>
+          <div class="busca-row">
+            <input type="text" class="input-busca-nome" id="input-nome"
+              placeholder="Buscar por nome do produto..." autocomplete="off">
+            <button class="btn-icon azul" id="btn-buscar-nome">🔍</button>
+          </div>
+          <div class="sugestoes" id="sugestoes"></div>
+        </div>
+
+        <!-- Tabela de itens -->
+        <div class="itens-card">
+          <div class="itens-header">
+            <h3>Itens da Venda</h3>
+            <span class="badge-qtd" id="badge-qtd">0</span>
+          </div>
+          <div class="tabela-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Produto</th>
+                  <th>Un.</th>
+                  <th>Qtd</th>
+                  <th>Preço</th>
+                  <th>Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-itens">
+                <tr id="tr-vazio">
+                  <td colspan="7">
+                    <div class="msg-vazia">
+                      <div class="icone">🛒</div>
+                      <p>Nenhum produto adicionado.<br>Escaneie ou busque um produto.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUNA DIREITA -->
+      <div class="col-dir">
+
+        <!-- Resumo -->
+        <div class="resumo-card">
+          <h3>Resumo</h3>
+          <div class="linha-resumo">
+            <span class="label">Subtotal</span>
+            <span class="valor" id="res-subtotal">R$ 0,00</span>
+          </div>
+          <div class="linha-resumo">
+            <span class="label">Desconto</span>
+            <span class="valor verde" id="res-desc">R$ 0,00</span>
+          </div>
+          <div class="linha-total">
+            <span class="label-total">Total</span>
+            <span class="valor-total" id="res-total">R$ 0,00</span>
+          </div>
+          <div class="desc-row">
+            <input type="number" id="input-desc" placeholder="Desconto em R$" min="0" step="0.01">
+            <button class="btn-desc" id="btn-aplicar-desc">APLICAR</button>
+          </div>
+        </div>
+
+        <!-- Pagamento -->
+        <div class="pgto-card">
+          <h3>Pagamento</h3>
+          <div class="formas-grid">
+            <button class="btn-forma ativo" data-forma="dinheiro">
+              <span class="fi">💵</span><span class="fn">Dinheiro</span>
+            </button>
+            <button class="btn-forma" data-forma="debito">
+              <span class="fi">💳</span><span class="fn">Débito</span>
+            </button>
+            <button class="btn-forma" data-forma="credito">
+              <span class="fi">💳</span><span class="fn">Crédito</span>
+            </button>
+            <button class="btn-forma" data-forma="pix">
+              <span class="fi">⚡</span><span class="fn">Pix</span>
+            </button>
+          </div>
+          <div class="troco-bloco" id="bloco-troco">
+            <label>Valor recebido (R$)</label>
+            <input type="number" id="input-pago" placeholder="0,00" min="0" step="0.01">
+          </div>
+          <div class="troco-result" id="troco-result">
+            <span class="tl">Troco</span>
+            <span class="tv" id="troco-val">R$ 0,00</span>
+          </div>
+          <div class="btns-acao">
+            <button class="btn-cancelar" id="btn-cancelar">✕ CANCELAR</button>
+            <button class="btn-finalizar" id="btn-finalizar">✓ FINALIZAR</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUCESSO -->
+  <div class="modal-overlay" id="modal-sucesso">
+    <div class="modal-box">
+      <div class="modal-icone">✅</div>
+      <div class="modal-titulo">VENDA FINALIZADA</div>
+      <div class="modal-sub" id="modal-sub">Pagamento registrado com sucesso!</div>
+      <div class="modal-troco-destaque" id="modal-troco-bloco">
+        <div class="mtl">Troco para o cliente</div>
+        <div class="mtv" id="modal-troco-val">R$ 0,00</div>
+      </div>
+      <button class="btn-nova-venda" id="btn-nova-venda">NOVA VENDA</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
